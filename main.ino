@@ -1,5 +1,6 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include <stdint.h>
 
 ////////////////////////////////////////////ENTRADAS////////////////////////////////
 ////////////////////////////////////////pinos e variaveis analogicos////////////////
@@ -86,7 +87,7 @@ void setup() {
   Serial.begin(9600);
 }
 
-void loop() {
+void loop(){
   sensors.requestTemperatures();
   
   temperatura = sensors.getTempCByIndex(0);

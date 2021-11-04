@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-enum IOTypeModel{IO_INVALID, IO_INTERNAL, IO_IN_DG_GEN, IN_AL_GEN, IO_OUT_DG};
+enum IOTypeModel{IO_INVALID=0, IO_IN_DG_GEN=1, IO_IN_AL_GEN=101, IO_OUT_DG=201};
 
 class Device{
 private:
@@ -15,7 +15,7 @@ public:
   uint8_t getPin();
   IOTypeModel getTypeModel();
 
-  virtual uint8_t read() = 0;
+  virtual uint8_t read(void *data) = 0;
   virtual void write(uint8_t val) = 0;
 };
 
@@ -24,7 +24,7 @@ public:
   InDgGen();
   InDgGen(uint8_t pin);
 
-  uint8_t read();
+  uint8_t read(void *data=NULL);
   void write(uint8_t val);
 };
 

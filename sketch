@@ -1,0 +1,30 @@
+
+int n; //qt de devices
+
+enum IOTypeModel{IO_INVALID=0, IO_IN_DG_GEN=1, IN_AL_GEN=101, IO_OUT_DG=201};
+
+protocolo Configuração
+
+N //Quantidade de dispositivos
+//Segue N linhas, com a i-ésima linha sendo:
+TypeModel indice/porta //(do i-ésimo dispositivo)
+
+"2\n5 0\n1 2"
+
+
+protocolo LADDER
+
+M //Quantidade de variáveis
+
+T
+VarId DeviceId (0<=VarId<M && 0<=DeviceId<N)
+3 //P (1<=P<=+inf)
+220 350 470 //P divisores (0<=DIVi<=500)
+0110 //String de valores de zonas de tamanho P+1
+001 //String indicadora de dominancia de tamanho P
+
+
+
+
+
+

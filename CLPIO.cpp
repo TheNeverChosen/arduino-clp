@@ -5,39 +5,53 @@
 #define QT_IN_AL 4
 #define QT_OUT_DG 4
 
+#define asdad 5
+
 uint8_t inDgPins[QT_IN_DG]={22, 23, 24, 25};
 uint8_t inAlPins[QT_IN_AL]={A0, A1, A2, A3};
 uint8_t outDgPins[QT_OUT_DG]={26, 27, 28, 35};
 
-Device::Device():pin(0), tpMd(IO_INVALID){}
-Device::Device(uint8_t pin, IOTypeModel tpMd):pin(pin), tpMd(tpMd){}
-uint8_t Device::getPin(){
+BaseDevice::BaseDevice(uint8_t pin, IOTypeModel tpMd):pin(pin), tpMd(tpMd){}
+BaseDevice::BaseDevice():pin(INVALID_PIN), tpMd(IO_INVALID){}
+uint8_t BaseDevice::getPin(){
   return pin;
 }
-IOTypeModel Device::getTypeModel(){
+IOTypeModel BaseDevice::getTypeModel(){
   return tpMd;
 }
 
 
-InDgGen::InDgGen():Device(){}
-InDgGen::InDgGen(uint8_t pin):Device(pin, IO_IN_DG_GEN){
+template <enum IOTypeModel TM>
+Device<TM>::Device():BaseDevice(){}
+template <enum IOTypeModel TM>
+Device<TM>::Device(uint8_t pin):BaseDevice(pin, TM){}
+
+
+Device<IO_IN_DG_GEN>::Device():BaseDevice(){}
+Device<IO_IN_DG_GEN>::Device(uint8_t pin):BaseDevice(pin, IO_IN_DG_GEN){
   pinMode(pin, INPUT);
 }
-uint8_t InDgGen::read(void *data=NULL){
+uint8_t Device<IO_IN_DG_GEN>::read(){
   return digitalRead(getPin());
 }
-void InDgGen::write(uint8_t val){
-  Serial.println("(InDgGen) INPUT write: Invalid.");
+
+
+Device<IO_IN_AL_GEN>::Device():BaseDevice(){}
+Device<IO_IN_AL_GEN>::Device(uint8_t pin):BaseDevice(pin, IO_IN_AL_GEN){
+  pinMode(pin, INPUT);
+}
+int Device<IO_IN_AL_GEN>::read(){
+  return analogRead(getPin());
 }
 
 
-OutDg::OutDg():Device(){}
-OutDg::OutDg(uint8_t pin):Device(pin, IO_OUT_DG){
+Device<IO_OUT_DG>::Device():BaseDevice(){}
+Device<IO_OUT_DG>::Device(uint8_t pin):BaseDevice(pin, IO_OUT_DG){
   pinMode(pin, OUTPUT);
 }
-uint8_t OutDg::read(){
+uint8_t Device<IO_OUT_DG>::read(){
   return digitalRead(getPin());
 }
-void OutDg::write(uint8_t val){
+void Device<IO_OUT_DG>::write(uint8_t val){
   digitalWrite(getPin(), val);
 }

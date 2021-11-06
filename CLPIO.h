@@ -2,73 +2,53 @@
 
 #include <stdint.h>
 
+#define INVALID_PIN ((uint8_t)-1)
+#define INVALID_VAL ((uint8_t)-1)
+
 enum IOTypeModel{IO_INVALID=0, IO_IN_DG_GEN=1, IO_IN_AL_GEN=101, IO_OUT_DG=201};
 
-class Device{
+class BaseDevice{
 private:
   uint8_t pin;
   enum IOTypeModel tpMd;
+protected:
+  BaseDevice(uint8_t pin, IOTypeModel tpMd);
 public:
-  Device();
-  Device(uint8_t pin, IOTypeModel tpMd);
+  BaseDevice();
+  virtual ~BaseDevice();
 
   uint8_t getPin();
   IOTypeModel getTypeModel();
-
-  virtual uint8_t read(void *data) = 0;
-  virtual void write(uint8_t val) = 0;
 };
 
-class InDgGen:public Device{
+template <enum IOTypeModel TM=IO_INVALID>
+class Device:public BaseDevice{
 public:
-  InDgGen();
-  InDgGen(uint8_t pin);
-
-  uint8_t read(void *data=NULL);
-  void write(uint8_t val);
+  Device();
+  Device(uint8_t pin);
 };
 
-class OutDg:public Device{
+template<>
+class Device<IO_IN_DG_GEN>:public BaseDevice{
 public:
-  OutDg();
-  OutDg(uint8_t pin);
+  Device();
+  Device(uint8_t pin);
+  uint8_t read();
+};
 
+template<>
+class Device<IO_IN_AL_GEN>:public BaseDevice{
+public:
+  Device();
+  Device(uint8_t pin);
+  int read();
+};
+
+template<>
+class Device<IO_OUT_DG>:public BaseDevice{
+public:
+  Device();
+  Device(uint8_t pin);
   uint8_t read();
   void write(uint8_t val);
-};
-
-class LdVar{
-private:
-  uint16_t id;
-public:
-  LdVar();
-  LdVar(uint16_t id);
-
-  uint16_t getId();
-
-  virtual uint8_t getValue() = 0;
-  virtual void setValue(uint8_t value) = 0;
-};
-
-class LdVarInternal:public LdVar{
-private:
-  uint8_t value;
-public:
-  LdVarInternal();
-  LdVarInternal(uint16_t id);
-  LdVarInternal(uint16_t id, uint8_t startValue);
-
-  uint8_t getValue();
-  void setValue(uint8_t value);
-};
-
-class LdVarDevice:public LdVar{
-private:
-  Device *device;
-public:
-  LdVarDevice();
-  LdVarDevice(uint8_t id, Device *device);
-  
-  uint8_t getValue();
-  void setValue(uint8_t value);
 };

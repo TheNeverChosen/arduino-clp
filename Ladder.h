@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdint.h>
 #include "CLPIO.h"
 
 class LdVar{
@@ -7,12 +8,13 @@ private:
   uint16_t id;
 public:
   LdVar();
+  virtual ~LdVar();
   LdVar(uint16_t id);
 
   uint16_t getId();
 
-  virtual uint8_t getValue() = 0;
-  virtual void setValue(uint8_t value) = 0;
+  virtual uint8_t getValue();
+  virtual void setValue(uint8_t val);
 };
 
 class LdVarInternal:public LdVar{
@@ -27,13 +29,35 @@ public:
   void setValue(uint8_t value);
 };
 
+template <enum IOTypeModel TM=IO_INVALID>
 class LdVarDevice:public LdVar{
 private:
-  Device *device;
+  Device<TM> *device;
 public:
   LdVarDevice();
-  LdVarDevice(uint8_t id, Device *device);
-  
+  LdVarDevice(uint8_t id, BaseDevice *device);
   uint8_t getValue();
   void setValue(uint8_t value);
 };
+
+template <>
+uint8_t LdVarDevice<IO_IN_DG_GEN>::getValue();
+
+template <>
+class LdVarDevice<IO_IN_AL_GEN>:public LdVar{
+private:
+  Device<IO_IN_AL_GEN> *device;
+  int qtDivs, *divs;
+  uint8_t *zoneVals, *dominances;
+public:
+  LdVarDevice();
+  LdVarDevice(uint8_t id, BaseDevice *baseDev, int qtDivs, int *divs, uint8_t *zoneVals, uint8_t *dominances);
+  ~LdVarDevice();
+  uint8_t getValue();
+};
+
+template <>
+uint8_t LdVarDevice<IO_OUT_DG>::getValue();
+template <>
+void LdVarDevice<IO_OUT_DG>::setValue(uint8_t value);
+

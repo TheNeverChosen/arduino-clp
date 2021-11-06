@@ -93,7 +93,7 @@ LdVarDevice<IO_IN_AL_GEN>::~LdVarDevice(){
 uint8_t LdVarDevice<IO_IN_AL_GEN>::getValue(){
   if(device==nullptr) return LdVar::getValue();
   int k=device->read(),
-      sg = smallestGreater(divs, qtDivs, k);
+      sg = smallestGreater<int>(divs, qtDivs, k);
 
   return (sg==qtDivs || divs[sg]!=k || dominances[sg]==0)
     ? zoneVals[sg]

@@ -15,7 +15,8 @@ public:
 
   uint16_t getId();
 
-  virtual uint8_t getValue() = 0;
+  virtual uint8_t getValue();
+  virtual void setValue(uint8_t value);
 };
 
 class LdVarInternal:public LdVar{

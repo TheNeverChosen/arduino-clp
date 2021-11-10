@@ -3,33 +3,32 @@
 #include <stdint.h>
 
 #define INVALID_PIN ((uint8_t)-1)
-#define INVALID_VAL ((uint8_t)-1)
 
 enum IOTypeModel{IO_INVALID=0, IO_IN_DG_GEN=1, IO_IN_AL_GEN=101, IO_OUT_DG=201};
 
-class BaseDevice{
+class DeviceBase{
 private:
   uint8_t pin;
   enum IOTypeModel tpMd;
 protected:
-  BaseDevice(uint8_t pin, IOTypeModel tpMd);
+  DeviceBase(uint8_t pin, IOTypeModel tpMd);
 public:
-  BaseDevice();
-  virtual ~BaseDevice();
+  DeviceBase();
+  virtual ~DeviceBase();
 
   uint8_t getPin();
   IOTypeModel getTypeModel();
 };
 
 template <enum IOTypeModel TM=IO_INVALID>
-class Device:public BaseDevice{
+class Device:public DeviceBase{
 public:
   Device();
   Device(uint8_t pin);
 };
 
 template<>
-class Device<IO_IN_DG_GEN>:public BaseDevice{
+class Device<IO_IN_DG_GEN>:public DeviceBase{
 public:
   Device();
   Device(uint8_t pin);
@@ -37,7 +36,7 @@ public:
 };
 
 template<>
-class Device<IO_IN_AL_GEN>:public BaseDevice{
+class Device<IO_IN_AL_GEN>:public DeviceBase{
 public:
   Device();
   Device(uint8_t pin);
@@ -45,7 +44,7 @@ public:
 };
 
 template<>
-class Device<IO_OUT_DG>:public BaseDevice{
+class Device<IO_OUT_DG>:public DeviceBase{
 public:
   Device();
   Device(uint8_t pin);

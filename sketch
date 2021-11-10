@@ -16,7 +16,7 @@ protocolo LADDER
 
 M //Quantidade de variáveis
 
-T
+TZ
 VarId DeviceId (0<=VarId<M && 0<=DeviceId<N)
 3 //P (1<=P<=+inf)
 220 350 470 //P divisores (0<=DIVi<=500)

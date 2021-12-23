@@ -52,7 +52,7 @@ LdVar* create_ld_var(IOTypeModel tpMd, DeviceBase *dev, uint8_t *protocol, ull &
         divs[j] = consume_bytes<uint16_t>(protocol, i);
 
       uint16_t zoneValsSz = ((qtDivs+1)+8-1)/8,
-               dominancesSz = (qtDivs/8);
+               dominancesSz = ((qtDivs-1)/8);
       uint8_t *zoneVals = new uint8_t[zoneValsSz],
         *dominances = new uint8_t[dominancesSz];
       

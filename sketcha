@@ -1,0 +1,42 @@
+enum IOTypeModel{IO_INVALID=0, IO_IN_DG_GEN=1, IN_AL_GEN=101, IO_OUT_DG=201};
+
+//========================================================================================================//
+N M //Quantidade de dispositivos e variáveis totais
+N->1 Byte
+M->2 Bytes
+
+  //Segue N linhas, com a i-ésima linha sendo:
+  TypeModel indice/porta qtVar //(do i-ésimo dispositivo)
+  TypeModel->1Byte
+  indice/porta->1Byte
+  qtVar->2 Bytes (1024 vars)
+
+    //Segue qtVar linhas, com a i-ésima linha sendo a descrição da variavel:
+
+      IO_IN_DG_GEN: VarId (2 Bytes)
+
+      IN_AL_GEN:
+        VarId (2 Bytes) qtDivs (2 Bytes)
+        d0 d1 d2 ... d(qtDivs) (2 Bytes cada) //qtDivs divisores
+        101...1 (ceil((qtDivs+1)/8) bytes)          //representação binária dos valores nos intervalos
+        10...0 (ceil(qtDivs/8) bytes)       //representação binária dos indicadores de dominancia
+
+      IO_OUT_DG: VarId (2 Bytes)
+
+
+//Diagrama Ladder
+  { -> 1
+  } -> 2
+  [ -> 3
+  ] -> 4
+  ( -> 5
+  ) -> 6
+
+  CA -> 10
+  CF -> 11
+  BA -> 12
+  BF -> 13
+    varId (2 Bytes)
+
+  { CF1 [ ( CA2 ) ( CA5 ) ] CA3 CA2 [ ( CF4 ) ( CA5 ) ] BA5 }
+//========================================================================================================//

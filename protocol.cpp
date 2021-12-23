@@ -23,15 +23,15 @@ T consume_bytes(uint8_t *arr, ull &i){
 DeviceBase* create_device(IOTypeModel tpMd, uint8_t doorId){
   DeviceBase *dev;
   switch(tpMd){
-    case IO_IN_DG_GEN:
+    case IO_IN_DG_GEN:{
       Device<IO_IN_DG_GEN> *dev = new Device<IO_IN_DG_GEN>(doorId);
-      return static_cast<DeviceBase*>(dev);
-    case IO_IN_AL_GEN:
+      return static_cast<DeviceBase*>(dev);}
+    case IO_IN_AL_GEN:{
       Device<IO_IN_AL_GEN> *dev = new Device<IO_IN_AL_GEN>(doorId);
-      return static_cast<DeviceBase*>(dev);
-    case IO_OUT_DG:
+      return static_cast<DeviceBase*>(dev);}
+    case IO_OUT_DG:{
       Device<IO_OUT_DG> *dev = new Device<IO_OUT_DG>(doorId);
-      return static_cast<DeviceBase*>(dev);
+      return static_cast<DeviceBase*>(dev);}
     default:
       return new DeviceBase();
   }
@@ -41,10 +41,10 @@ LdVar* create_ld_var(IOTypeModel tpMd, DeviceBase *dev, uint8_t *protocol, ull &
   uint16_t varId = consume_bytes<uint16_t>(protocol, i);
 
   switch(tpMd){
-    case IO_IN_DG_GEN:
+    case IO_IN_DG_GEN:{
       LdVarDevice<IO_IN_DG_GEN> *var = new LdVarDevice<IO_IN_DG_GEN>(varId, dev);
-      return static_cast<LdVar*>(var);
-    case IO_IN_AL_GEN:
+      return static_cast<LdVar*>(var);}
+    case IO_IN_AL_GEN:{
       uint16_t qtDivs = consume_bytes<uint16_t>(protocol, i);
       uint16_t *divs = new uint16_t[qtDivs];
 
@@ -52,7 +52,7 @@ LdVar* create_ld_var(IOTypeModel tpMd, DeviceBase *dev, uint8_t *protocol, ull &
         divs[j] = consume_bytes<uint16_t>(protocol, i);
 
       uint16_t zoneValsSz = ((qtDivs+1)+8-1)/8,
-               dominancesSz = ((qtDivs-1)/8);
+               dominancesSz = ((qtDivs+8-1)/8);
       uint8_t *zoneVals = new uint8_t[zoneValsSz],
         *dominances = new uint8_t[dominancesSz];
       
@@ -64,11 +64,10 @@ LdVar* create_ld_var(IOTypeModel tpMd, DeviceBase *dev, uint8_t *protocol, ull &
 
       LdVarDevice<IO_IN_AL_GEN> *var = new LdVarDevice<IO_IN_AL_GEN>(varId, dev, qtDivs, divs, zoneVals, dominances);
       
-      return var; // :D
-    case IO_OUT_DG:
+      return var;}
+    case IO_OUT_DG:{
       LdVarDevice<IO_OUT_DG> *var = new LdVarDevice<IO_OUT_DG>(varId, dev);
-      return static_cast<LdVar*>(var);
-      
+      return static_cast<LdVar*>(var);}
     default:
       return new LdVar();
   }
@@ -86,8 +85,7 @@ void read_protocol(uint8_t *protocol, unsigned sz){
     uint16_t qtVar = consume_bytes<uint16_t>(protocol, i);
     deviceArr[j] = create_device(tpMd, doorId);
 
-    for(uint16_t k=0;k<qtVar;k++){
-      deviceArr[k] = create_ld_var(tpMd, deviceArr[j], protocol, i);
-    }
+    for(uint16_t k=0;k<qtVar;k++)
+      ldVarArr[k] = create_ld_var(tpMd, deviceArr[j], protocol, i);
   }
 }

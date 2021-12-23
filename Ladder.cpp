@@ -77,7 +77,7 @@ LdVarDevice<IO_IN_AL_GEN>::LdVarDevice()
   ,zoneVals(nullptr),dominances(nullptr){}
 
 LdVarDevice<IO_IN_AL_GEN>::LdVarDevice(uint8_t id, DeviceBase *baseDev,
-  int qtDivs, int *divs, uint8_t *zoneVals, uint8_t *dominances)
+  uint16_t qtDivs, uint16_t *divs, uint8_t *zoneVals, uint8_t *dominances)
     :LdVar(id),device(static_cast<Device<IO_IN_AL_GEN>*>(baseDev)),
     qtDivs(qtDivs),divs(divs),zoneVals(zoneVals),dominances(dominances){
   if(qtDivs<0 || zoneVals==nullptr ||
@@ -93,10 +93,10 @@ LdVarDevice<IO_IN_AL_GEN>::~LdVarDevice(){
 
 uint8_t LdVarDevice<IO_IN_AL_GEN>::getValue(){
   if(device==nullptr) return LdVar::getValue();
-  int k=device->read(),
-      sg = smallestGreater<int>(divs, qtDivs, k);
+  int k=device->read();
+  uint16_t sg = smallest_greater<uint16_t>(divs, qtDivs, k);
 
-  return (sg==qtDivs || divs[sg]!=k || dominances[sg]==0)
+  return (sg==qtDivs || divs[sg]!=k || get_bit_arr<uint16_t>(dominances, sg, qtDivs)==0)
     ? zoneVals[sg]
     : zoneVals[sg+1];
 }

@@ -91,6 +91,6 @@ void read_protocol(uint8_t *protocol, unsigned sz){
 
   for(uint8_t j=qtV;j<qtV;j++)
       if(ldVarArr[j] == NULL)
-        ldVarArr[j] = new LdVarInternal();
+        ldVarArr[j] = new LdVarInternal;
   
 }

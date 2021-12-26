@@ -8,8 +8,8 @@
 
 typedef unsigned long long ull;
 
-const unsigned qtTotalDev = QT_INP_ALG + QT_INP_DIG + QT_OUT_DIG;
-DeviceBase *deviceArr[qtTotalDev];
+const unsigned qtMaxDev = QT_INP_ALG + QT_INP_DIG + QT_OUT_DIG;
+DeviceBase *deviceArr[qtMaxDev];
 
 LdVar *ldVarArr[QT_MAX_LD_VAR]={};
 
@@ -77,20 +77,21 @@ void read_protocol(uint8_t *protocol, unsigned sz){
   ull i=0;
   
   uint8_t qtD = protocol[i++]; //quantidade de dispositivos (1 bytes)
-  uint16_t qtV = consume_bytes<uint16_t>(protocol, i); //quantidade de variaveis (2 bytes)
-  
+  uint16_t qtTotalVar = consume_bytes<uint16_t>(protocol, i); //quantidade de variaveis (2 bytes)
+
   for(uint8_t j=0;j<qtD;j++){
     IOTypeModel tpMd = (IOTypeModel) protocol[i++];
     uint8_t doorId = protocol[i++];
     uint16_t qtVar = consume_bytes<uint16_t>(protocol, i); 
     deviceArr[j] = create_device(tpMd, doorId);
 
-    for(uint16_t k=0;k<qtVar;k++)
-      ldVarArr[k] = create_ld_var(tpMd, deviceArr[j], protocol, i);
+    while(qtVar--){
+      LdVar *var = create_ld_var(tpMd, deviceArr[j], protocol, i);
+      ldVarArr[var->getId()] = var;
+    }
   }
 
-  for(uint8_t j=qtV;j<qtV;j++)
+  for(uint16_t j=0;j<qtTotalVar;j++)
       if(ldVarArr[j] == NULL)
-        ldVarArr[j] = new LdVarInternal;
-  
+        ldVarArr[j] = new LdVarInternal(j);
 }

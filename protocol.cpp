@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <stdint.h>
 #include "CLPIO.h"
 #include "Ladder.h"
@@ -77,14 +78,19 @@ void read_protocol(uint8_t *protocol, unsigned sz){
   
   uint8_t qtD = protocol[i++]; //quantidade de dispositivos (1 bytes)
   uint16_t qtV = consume_bytes<uint16_t>(protocol, i); //quantidade de variaveis (2 bytes)
-
+  
   for(uint8_t j=0;j<qtD;j++){
     IOTypeModel tpMd = (IOTypeModel) protocol[i++];
     uint8_t doorId = protocol[i++];
-    uint16_t qtVar = consume_bytes<uint16_t>(protocol, i);
+    uint16_t qtVar = consume_bytes<uint16_t>(protocol, i); 
     deviceArr[j] = create_device(tpMd, doorId);
 
     for(uint16_t k=0;k<qtVar;k++)
       ldVarArr[k] = create_ld_var(tpMd, deviceArr[j], protocol, i);
   }
+
+  for(uint8_t j=qtV;j<qtV;j++)
+      if(ldVarArr[j] == NULL)
+        ldVarArr[j] = new LdVarInternal();
+  
 }

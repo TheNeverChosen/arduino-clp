@@ -2,6 +2,7 @@
 #include "CLPIO.h"
 #include "Ladder.h"
 #include "utils.h"
+#include <Arduino.h>
 
 #define DEF_INTERNAL_VAL LOW //Default Value for LdVarInternal
 

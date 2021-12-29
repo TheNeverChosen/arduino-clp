@@ -2,25 +2,21 @@
 #include <stdint.h>
 #include "CLPIO.h"
 #include "Ladder.h"
+#include "Protocol.h"
 #include "env.h"
-
-#define QT_MAX_LD_VAR 1024
 
 typedef unsigned long long ull;
 
-const unsigned qtMaxDev = QT_INP_ALG + QT_INP_DIG + QT_OUT_DIG;
-DeviceBase *deviceArr[qtMaxDev];
-
-LdVar *ldVarArr[QT_MAX_LD_VAR]={};
+Protocol::Protocol():deviceArr(), ldVarArr(), diagram(NULL), qtDevs(0), qtVars(0), ptcSz(0), diagSz(0){ }
 
 template<typename T>
-T consume_bytes(uint8_t *arr, ull &i){
+T Protocol::consume_bytes(uint8_t *arr, sz_ptc &i){
   T res = *((T*)(&arr[i]));
   i+=sizeof(T);
   return res;
 }
 
-DeviceBase* create_device(IOTypeModel tpMd, uint8_t doorId){
+DeviceBase* Protocol::create_device(IOTypeModel tpMd, uint8_t doorId){
   DeviceBase *dev;
   switch(tpMd){
     case IO_IN_DG_GEN:{
@@ -37,7 +33,7 @@ DeviceBase* create_device(IOTypeModel tpMd, uint8_t doorId){
   }
 }
 
-LdVar* create_ld_var(IOTypeModel tpMd, DeviceBase *dev, uint8_t *protocol, ull &i){
+LdVar* Protocol::create_ld_var(IOTypeModel tpMd, DeviceBase *dev, uint8_t *protocol, sz_ptc &i){
   uint16_t varId = consume_bytes<uint16_t>(protocol, i);
 
   switch(tpMd){
@@ -73,25 +69,98 @@ LdVar* create_ld_var(IOTypeModel tpMd, DeviceBase *dev, uint8_t *protocol, ull &
   }
 }
 
-void read_protocol(uint8_t *protocol, unsigned sz){
-  ull i=0;
-  
-  uint8_t qtD = protocol[i++]; //quantidade de dispositivos (1 bytes)
-  uint16_t qtTotalVar = consume_bytes<uint16_t>(protocol, i); //quantidade de variaveis (2 bytes)
 
-  for(uint8_t j=0;j<qtD;j++){
+void Protocol::set_protocol(uint8_t *protocol, sz_ptc sz){
+  for(int i=0;i<qtDevs;i++) delete deviceArr[i];  
+  for(int i=0;i<qtVars;i++) delete ldVarArr[i];
+  
+  qtDevs=0; qtVars=0;
+
+  memcpy(this->protocol, protocol, sizeof(uint8_t) * sz);
+
+  ptcSz = sz;
+  diagSz = 0;
+  diagram=NULL;
+}
+
+void Protocol::set_vars_dev_diag(){
+  if(ptcSz==0) return;
+
+  sz_ptc i=0;
+  
+  qtDevs = protocol[i++]; //quantidade de dispositivos (1 bytes)
+  qtVars = consume_bytes<uint16_t>(protocol, i); //quantidade de variaveis (2 bytes)
+
+  for(uint8_t j=0;j<qtDevs;j++){
     IOTypeModel tpMd = (IOTypeModel) protocol[i++];
     uint8_t doorId = protocol[i++];
-    uint16_t qtVar = consume_bytes<uint16_t>(protocol, i); 
+    uint16_t qtVarDev = consume_bytes<uint16_t>(protocol, i);
     deviceArr[j] = create_device(tpMd, doorId);
 
-    while(qtVar--){
+    while(qtVarDev--){
       LdVar *var = create_ld_var(tpMd, deviceArr[j], protocol, i);
       ldVarArr[var->getId()] = var;
     }
   }
 
-  for(uint16_t j=0;j<qtTotalVar;j++)
-      if(ldVarArr[j] == NULL)
-        ldVarArr[j] = new LdVarInternal(j);
+  for(uint16_t j=0;j<qtVars;j++)
+    if(ldVarArr[j] == NULL)
+      ldVarArr[j] = new LdVarInternal(j);
+
+  diagram = &protocol[i];
+  diagSz = ptcSz-i;
+}
+
+typedef enum{
+  L1=1, L2=2, F1=3, F2=4, P1=5, P2=6 
+}Symbols;
+typedef enum{
+  RC_BEG=10, CA=11, CF=12, BA=13, BF=14, RC_END=15
+}RelayComps;
+bool isRelayComp(uint8_t x){
+  return (x>RC_BEG && x<RC_END);
+}
+
+bool Protocol::exec_fork(sz_ptc &i){
+  bool res = false;
+  while(diagram[i]!=F2){
+    if(diagram[i]==P1) res = exec_path(++i, P2) || res;
+    else i++;
+  }
+  return res;
+}
+
+bool Protocol::exec_path(sz_ptc &i, uint8_t stopAt){
+  bool res=true;
+
+  while(i<diagSz && diagram[i]!=stopAt){
+    if(isRelayComp(diagram[i])){
+      RelayComps x = (RelayComps) diagram[i++];
+      sz_varr iVar = consume_bytes<uint16_t>(diagram, i);
+
+      switch(x){
+        case CA:
+          res = (res && ldVarArr[iVar]->getValue()); break;
+        case CF:
+          res = (res && !ldVarArr[iVar]->getValue()); break;
+        case BA:
+          ldVarArr[iVar]->setValue(res); break;
+        case BF:
+          ldVarArr[iVar]->setValue(!res); break;
+      }
+    }
+    else if(diagram[i]==F1) res = res && exec_fork(++i);
+  }
+
+  i++;
+  return res;
+}
+
+void Protocol::run_diag(){
+  if(diagram==NULL) return;
+
+  for(sz_ptc i=0;i<diagSz;){
+    if(diagram[i]==L1) exec_path(++i, L2);
+    else i++;
+  }
 }

@@ -41,13 +41,14 @@ Device<IO_IN_DG_GEN>::Device(uint8_t doorId):DeviceBase(doorId, ID_TP_DOOR, IO_I
   pinMode(getPin(), INPUT);
 }
 uint8_t Device<IO_IN_DG_GEN>::read(){
-  return digitalRead(getPin());
+  uint8_t val = digitalRead(getPin());
+  Serial.print("Pino: "); Serial.println(getPin());
+  Serial.print("Valor lido: "); Serial.println(val);
+  return val;
 }
-
 
 Device<IO_IN_AL_GEN>::Device():DeviceBase(){}
 Device<IO_IN_AL_GEN>::Device(uint8_t doorId):DeviceBase(doorId, ID_TP_DOOR, IO_IN_AL_GEN){
-  pinMode(getPin(), INPUT);
 }
 int Device<IO_IN_AL_GEN>::read(){
   return analogRead(getPin());
@@ -63,4 +64,6 @@ uint8_t Device<IO_OUT_DG>::read(){
 }
 void Device<IO_OUT_DG>::write(uint8_t val){
   digitalWrite(getPin(), val);
+  Serial.print("Pino: "); Serial.print(getPin());
+  Serial.print("Valor escrito: "); Serial.println(val);
 }

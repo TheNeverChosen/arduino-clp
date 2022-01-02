@@ -25,7 +25,7 @@ public:
   Protocol();
 
   void set_protocol(uint8_t *protocol, sz_ptc sz);
-  void set_vars_dev_diag();
+  void set_dev_vars_diag();
   void run_diag();
   
 };

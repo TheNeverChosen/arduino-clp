@@ -1,15 +1,18 @@
+#include <Arduino.h>
 #include <stdint.h>
 #include "CLPIO.h"
 #include "Ladder.h"
 #include "utils.h"
-#include <Arduino.h>
+#include "env.h"
 
 #define DEF_INTERNAL_VAL LOW //Default Value for LdVarInternal
 
 //=========================LdVar=========================
 LdVar::LdVar():id(-1){}
 
-LdVar::LdVar(uint16_t id):id(id){}
+LdVar::LdVar(sz_varr id):id(id){}
+
+LdVar::~LdVar(){}
 
 uint16_t LdVar::getId(){
   return id;
@@ -30,9 +33,9 @@ void LdVar::setValue(uint8_t value){
 //=====================LdVarInternal=====================
 LdVarInternal::LdVarInternal():LdVar(), value(DEF_INTERNAL_VAL){}
 
-LdVarInternal::LdVarInternal(uint16_t id):LdVar(id), value(LOW){}
+LdVarInternal::LdVarInternal(sz_varr id):LdVar(id), value(LOW){}
 
-LdVarInternal::LdVarInternal(uint16_t id, uint8_t startValue)
+LdVarInternal::LdVarInternal(sz_varr id, uint8_t startValue)
   :LdVar(id), value(startValue){}
 
 uint8_t LdVarInternal::getValue(){
@@ -41,25 +44,6 @@ uint8_t LdVarInternal::getValue(){
 
 void LdVarInternal::setValue(uint8_t value){
   this->value=value;
-}
-//=======================================================
-
-//====================LdVarDevice<TM>====================
-template <enum IOTypeModel TM>
-LdVarDevice<TM>::LdVarDevice():LdVar(),device(nullptr){}
-
-template <enum IOTypeModel TM>
-LdVarDevice<TM>::LdVarDevice(uint8_t id, DeviceBase *baseDev)
-  :LdVar(id), device(static_cast<Device<TM>*>(baseDev)){}
-
-template <enum IOTypeModel TM>
-uint8_t LdVarDevice<TM>::getValue(){
-  return LdVar::getValue();
-}
-
-template <enum IOTypeModel TM>
-void LdVarDevice<TM>::setValue(uint8_t value){
-  LdVar::setValue(value);
 }
 //=======================================================
 
@@ -76,7 +60,7 @@ LdVarDevice<IO_IN_AL_GEN>::LdVarDevice()
   :LdVar(),device(nullptr),qtDivs(0),divs(nullptr)
   ,zoneVals(nullptr),dominances(nullptr){}
 
-LdVarDevice<IO_IN_AL_GEN>::LdVarDevice(uint8_t id, DeviceBase *baseDev,
+LdVarDevice<IO_IN_AL_GEN>::LdVarDevice(sz_varr id, DeviceBase *baseDev,
   uint16_t qtDivs, uint16_t *divs, uint8_t *zoneVals, uint8_t *dominances)
     :LdVar(id),device(static_cast<Device<IO_IN_AL_GEN>*>(baseDev)),
     qtDivs(qtDivs),divs(divs),zoneVals(zoneVals),dominances(dominances){
@@ -93,10 +77,10 @@ LdVarDevice<IO_IN_AL_GEN>::~LdVarDevice(){
 
 uint8_t LdVarDevice<IO_IN_AL_GEN>::getValue(){
   if(device==nullptr) return LdVar::getValue();
-  int k=device->read();
+  uint16_t k = map(device->read(), 0, 1023, 0, 500);
   uint16_t sg = smallest_greater<uint16_t>(divs, qtDivs, k);
 
-  return (sg==qtDivs || divs[sg]!=k || get_bit_arr<uint16_t>(dominances, sg, qtDivs)==0)
+  return (sg==qtDivs || divs[sg]!=k || get_bit_arr(dominances, sg, qtDivs)==0)
     ? zoneVals[sg]
     : zoneVals[sg+1];
 }

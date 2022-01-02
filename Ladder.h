@@ -2,15 +2,16 @@
 
 #include <stdint.h>
 #include "CLPIO.h"
+#include "env.h"
 
 #define INVALID_VAL ((uint8_t)-1)
 
 class LdVar{
 private:
-  uint16_t id;
+  sz_varr id;
 public:
   LdVar();
-  LdVar(uint16_t id);
+  LdVar(sz_varr id);
   virtual ~LdVar();
 
   uint16_t getId();
@@ -24,23 +25,42 @@ private:
   uint8_t value;
 public:
   LdVarInternal();
-  LdVarInternal(uint16_t id);
-  LdVarInternal(uint16_t id, uint8_t startValue);
+  LdVarInternal(sz_varr id);
+  LdVarInternal(sz_varr id, uint8_t startValue);
 
   uint8_t getValue();
   void setValue(uint8_t value);
 };
 
+//====================LdVarDevice<TM>====================
 template <enum IOTypeModel TM=IO_INVALID>
 class LdVarDevice:public LdVar{
 private:
   Device<TM> *device;
 public:
   LdVarDevice();
-  LdVarDevice(uint8_t id, DeviceBase *device);
+  LdVarDevice(sz_varr id, DeviceBase *device);
   uint8_t getValue();
   void setValue(uint8_t value);
 };
+
+template <enum IOTypeModel TM>
+LdVarDevice<TM>::LdVarDevice():LdVar(),device(nullptr){}
+
+template <enum IOTypeModel TM>
+LdVarDevice<TM>::LdVarDevice(sz_varr id, DeviceBase *baseDev)
+  :LdVar(id), device(static_cast<Device<TM>*>(baseDev)){}
+
+template <enum IOTypeModel TM>
+uint8_t LdVarDevice<TM>::getValue(){
+  return LdVar::getValue();
+}
+
+template <enum IOTypeModel TM>
+void LdVarDevice<TM>::setValue(uint8_t value){
+  LdVar::setValue(value);
+}
+//=======================================================
 
 template <>
 uint8_t LdVarDevice<IO_IN_DG_GEN>::getValue();
@@ -53,7 +73,7 @@ private:
   uint8_t *zoneVals, *dominances;
 public:
   LdVarDevice();
-  LdVarDevice(uint8_t id, DeviceBase *baseDev, uint16_t qtDivs, uint16_t *divs, uint8_t *zoneVals, uint8_t *dominances);
+  LdVarDevice(sz_varr id, DeviceBase *baseDev, uint16_t qtDivs, uint16_t *divs, uint8_t *zoneVals, uint8_t *dominances);
   ~LdVarDevice();
   uint8_t getValue();
 };

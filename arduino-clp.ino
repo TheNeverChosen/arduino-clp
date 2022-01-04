@@ -3,39 +3,6 @@
 
 Protocol ptc;
 
-/*
-//Diagrama Ladder
-  { -> 1
-  } -> 2
-  [ -> 3
-  ] -> 4
-  ( -> 5
-  ) -> 6
-
-  CA -> 11
-  CF -> 12
-  BA -> 13
-  BF -> 14
-    varId (2 Bytes)
-*/
-
-/*
-  VarId (1 Bytes)
-  qtDivs (2 Bytes)
-  d0 d1 d2 ... d (qtDivs) (2 Bytes cada) //qtDivs divisores
-  101..1 (ceil((qtDivs+1)/8) bytes)         //representação binária dos valores nos intervalos
-  10..0 (ceil((qtDivs)/8) bytes)      //representação binária dos indicadores de dominancia
-*/
-
-/*
-  0,1 -> potenciometros
-  2 -> Botao ON
-  3 -> Botao OFF
-  4 -> LED TURN ON
-  5 -> LED
-*/
-
-
 uint8_t protocol[] = {
   6, 6, //qtDevs, qtVars)
 
@@ -69,8 +36,6 @@ uint8_t protocol[] = {
   L1, CA,4,  F1,  P1, CA, 0, CF,1, P2,  P1, CF,0 ,CA,1 ,P2 ,F2,  BA,5, L2};
 
 const sz_ptc sz = sizeof(protocol);
-
-//{  [  (CA v0)    (CA v1)   ]  BA v2   }
 
 void setup(){
   Serial.begin(9600);

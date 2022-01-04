@@ -16,7 +16,6 @@ protected:
   DeviceBase(uint8_t id, DevIDType idTp, IOTypeModel tpMd);
 public:
   DeviceBase();
-  virtual ~DeviceBase();
 
   uint8_t getPin();
   IOTypeModel getTypeModel();

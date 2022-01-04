@@ -5,6 +5,17 @@
 #include "Ladder.h"
 #include "env.h"
 
+///////////typedef da estrutura do diagrama///////////
+////////linhas, paralelo e linhas do paralelo/////////
+typedef enum{
+  L1=1, L2=2, F1=3, F2=4, P1=5, P2=6 
+}Symbols;
+
+///////componentes dos relés: contatos e bobinas//////
+typedef enum{
+  RC_BEG=10, CA=11, CF=12, BA=13, BF=14, RC_END=15
+}RelayComps;
+
 class Protocol{
 private:
   DeviceBase *deviceArr[QT_MAX_DEV];
@@ -25,7 +36,7 @@ public:
   Protocol();
 
   void set_protocol(uint8_t *protocol, sz_ptc sz);
-  void set_vars_dev_diag();
+  void set_dev_vars_diag();
   void run_diag();
   
 };

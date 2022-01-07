@@ -4,7 +4,7 @@
 
 #define INVALID_PIN ((uint8_t)-1)
 
-enum IOTypeModel{IO_INVALID=0, IO_IN_DG_GEN=1, IO_IN_AL_GEN=101, IO_OUT_DG=201};
+enum IOTypeModel{IO_INVALID=0, IO_IN_DG_GEN=1, IO_IN_AL_GEN=101, IO_OUT_DG_GEN=201};
 
 enum DevIDType{ID_TP_PIN, ID_TP_DOOR};
 
@@ -45,7 +45,7 @@ public:
 };
 
 template<>
-class Device<IO_OUT_DG>:public DeviceBase{
+class Device<IO_OUT_DG_GEN>:public DeviceBase{
 public:
   Device();
   Device(uint8_t doorId);

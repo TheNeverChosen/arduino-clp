@@ -79,6 +79,6 @@ public:
 };
 
 template <>
-uint8_t LdVarDevice<IO_OUT_DG>::getValue();
+uint8_t LdVarDevice<IO_OUT_DG_GEN>::getValue();
 template <>
-void LdVarDevice<IO_OUT_DG>::setValue(uint8_t value);
+void LdVarDevice<IO_OUT_DG_GEN>::setValue(uint8_t value);

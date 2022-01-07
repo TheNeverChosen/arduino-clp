@@ -10,8 +10,8 @@
 
 static const unsigned QT_MAX_DEV = QT_INP_ALG + QT_INP_DIG + QT_OUT_DIG;
 
-#define QT_MAX_LD_VAR 20
+#define QT_MAX_LD_VAR 256
 typedef uint8_t sz_varr;
 
-#define MAX_SZ_PROTOCOL 1000
+#define MAX_SZ_PROTOCOL 2000
 typedef uint16_t sz_ptc;

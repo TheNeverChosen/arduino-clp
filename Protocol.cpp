@@ -19,27 +19,31 @@ T Protocol::consume_bytes(uint8_t *arr, sz_ptc &i){
 }
 
 
-/////////////////////////////create_device/////////////////////////////
 ////////////////////////criação dos dispositivos///////////////////////
 DeviceBase* Protocol::create_device(IOTypeModel tpMd, uint8_t doorId){
   DeviceBase *dev;
   switch(tpMd){
+    /*===================input digital genérico===================*/
     case IO_IN_DG_GEN:{
       Device<IO_IN_DG_GEN> *dev = new Device<IO_IN_DG_GEN>(doorId);
       return static_cast<DeviceBase*>(dev);}
+    
+    /*===================input analógico genérico==================*/  
     case IO_IN_AL_GEN:{
       Device<IO_IN_AL_GEN> *dev = new Device<IO_IN_AL_GEN>(doorId);
       return static_cast<DeviceBase*>(dev);}
-    case IO_OUT_DG:{
-      Device<IO_OUT_DG> *dev = new Device<IO_OUT_DG>(doorId);
+
+    /*===================output digital genérico===================*/
+    case IO_OUT_DG_GEN:{
+      Device<IO_OUT_DG_GEN> *dev = new Device<IO_OUT_DG_GEN>(doorId);
       return static_cast<DeviceBase*>(dev);}
+      
     default:
       return new DeviceBase();
   }
 }
 
 
-//////////////////////////////////////////create_ld_var//////////////////////////////////////////
 ///////////////////////////////////////criação de variaveis//////////////////////////////////////
 LdVar* Protocol::create_ld_var(IOTypeModel tpMd, DeviceBase *dev, uint8_t *protocol, sz_ptc &i){
   sz_varr varId = consume_bytes<sz_varr>(protocol, i);
@@ -57,7 +61,7 @@ LdVar* Protocol::create_ld_var(IOTypeModel tpMd, DeviceBase *dev, uint8_t *proto
       for(uint8_t j=0;j<qtDivs;j++){
         divs[j] = consume_bytes<uint16_t>(protocol, i);
 
-        Serial.print("divs ["); Serial.print(j); Serial.print("]: ");
+        Serial.print(F("divs [")); Serial.print(j); Serial.print(F("]: "));
         Serial.println(divs[j]);
       }
 
@@ -68,25 +72,25 @@ LdVar* Protocol::create_ld_var(IOTypeModel tpMd, DeviceBase *dev, uint8_t *proto
       
       for(uint16_t j=0;j<zoneValsSz;j++){
         zoneVals[j] = protocol[i++];
-        Serial.print("zoneVals["); Serial.print(j); Serial.print("]: ");
+        Serial.print(F("zoneVals[")); Serial.print(j); Serial.print(F("]: "));
         Serial.println(zoneVals[j]);
       }
       
       for(uint16_t j=0;j<dominancesSz;j++){
         dominances[j] = protocol[i++];
-        Serial.print("dominances["); Serial.print(j); Serial.print("]: ");
+        Serial.print(F("dominances[")); Serial.print(j); Serial.print(F("]: "));
         Serial.println(dominances[j]);
       }
 
-      Serial.print("Final I: "); Serial.println(i);
+      Serial.print(F("Final I: ")); Serial.println(i);
 
       LdVarDevice<IO_IN_AL_GEN> *var = new LdVarDevice<IO_IN_AL_GEN>(varId, dev, qtDivs, divs, zoneVals, dominances);
      
-      Serial.println("var IO_IN_AL_GEN var ok");
+      Serial.println(F("var IO_IN_AL_GEN var ok"));
      
       return var;}
-    case IO_OUT_DG:{
-      LdVarDevice<IO_OUT_DG> *var = new LdVarDevice<IO_OUT_DG>(varId, dev);
+    case IO_OUT_DG_GEN:{
+      LdVarDevice<IO_OUT_DG_GEN> *var = new LdVarDevice<IO_OUT_DG_GEN>(varId, dev);
       return static_cast<LdVar*>(var);}
     default:
       return new LdVar();
@@ -123,23 +127,23 @@ void Protocol::set_dev_vars_diag(){
 
   qtDevs = protocol[i++]; //quantidade de dispositivos (1 bytes)
   
-  Serial.println("set_dev_vars_diag iniciado");
+  Serial.println(F("set_dev_vars_diag iniciado"));
   
   qtVars = consume_bytes<sz_varr>(protocol, i); //quantidade de variaveis (2 bytes)
 
-  Serial.print("QtDevs: "); Serial.println(qtDevs);
-  Serial.print("QtVars: "); Serial.println(qtVars);
+  Serial.print(F("QtDevs: ")); Serial.println(qtDevs);
+  Serial.print(F("QtVars: ")); Serial.println(qtVars);
 
   for(sz_varr j=0;j<qtDevs;j++){
     
-    Serial.print("Lendo o device: "); Serial.println(j);
+    Serial.print(F("Lendo o device: ")); Serial.println(j);
     
     IOTypeModel tpMd = (IOTypeModel) protocol[i++];
     uint8_t doorId = protocol[i++];
     sz_varr qtVarDev = consume_bytes<sz_varr>(protocol, i);
     deviceArr[j] = create_device(tpMd, doorId);
 
-    Serial.print("Lendo variaveis. QtVarDev: "); Serial.println(qtVarDev);
+    Serial.print(F("Lendo variaveis. QtVarDev: ")); Serial.println(qtVarDev);
     
     while(qtVarDev--){
       LdVar *var = create_ld_var(tpMd, deviceArr[j], protocol, i);
@@ -147,19 +151,19 @@ void Protocol::set_dev_vars_diag(){
     }
   }
 
-  Serial.println("Inicializando variaveis internas (NULL)");
+  Serial.println(F("Inicializando variaveis internas (NULL)"));
   
   for(sz_varr j=0;j<qtVars;j++)
     if(ldVarArr[j] == NULL)
       ldVarArr[j] = new LdVarInternal(j);
   
-  Serial.println("Variaveis internas inicializadas");
+  Serial.println(F("Variaveis internas inicializadas"));
 
   diagram = &protocol[i];
   diagSz = ptcSz-i;
   
-  Serial.print("ptcSz: "); Serial.println(ptcSz); 
-  Serial.print("DiagSz: "); Serial.println(diagSz);
+  Serial.print(F("ptcSz: ")); Serial.println(ptcSz); 
+  Serial.print(F("DiagSz: ")); Serial.println(diagSz);
 }
 
 bool isRelayComp(uint8_t x){
@@ -174,9 +178,9 @@ bool Protocol::exec_fork(sz_ptc &i){
   bool res = false;
 
   #ifdef DEBUG_ON
-    Serial.println("==========EXECUTANDO FORK==========");
-    Serial.print("I: "); Serial.println(i);
-    Serial.println("====================================");
+    Serial.println(F("==========EXECUTANDO FORK=========="));
+    Serial.print(F("I: ")); Serial.println(i);
+    Serial.println(F("===================================="));
   #endif
 
   while(diagram[i]!=F2){
@@ -185,10 +189,10 @@ bool Protocol::exec_fork(sz_ptc &i){
   }
   
   #ifdef DEBUG_ON
-    Serial.println("==========TERMINANDO FORK==========");
-    Serial.print("I: "); Serial.println(i);
-    Serial.print("Res: "); Serial.println(res);
-    Serial.println("====================================");
+    Serial.println(F("==========TERMINANDO FORK=========="));
+    Serial.print(F("I: ")); Serial.println(i);
+    Serial.print(F("Res: ")); Serial.println(res);
+    Serial.println(F("===================================="));
   #endif
   
   i++;
@@ -204,10 +208,10 @@ bool Protocol::exec_path(sz_ptc &i, uint8_t stopAt){
   bool res=true;
 
   #ifdef DEBUG_ON
-    Serial.println("==========EXECUTANDO LINHA==========");
-    Serial.print("I: "); Serial.println(i);
-    Serial.print("StopAt: "); Serial.println(stopAt);
-    Serial.println("====================================");
+    Serial.println(F("==========EXECUTANDO LINHA=========="));
+    Serial.print(F("I: ")); Serial.println(i);
+    Serial.print(F("StopAt: ")); Serial.println(stopAt);
+    Serial.println(F("===================================="));
   #endif
 
   while(i<diagSz && diagram[i]!=stopAt){
@@ -230,10 +234,10 @@ bool Protocol::exec_path(sz_ptc &i, uint8_t stopAt){
   }
 
   #ifdef DEBUG_ON
-    Serial.println("==========TERMINANDO LINHA==========");
-    Serial.print("I: "); Serial.println(i);
-    Serial.print("Res: "); Serial.println(res);
-    Serial.println("====================================");
+    Serial.println(F("==========TERMINANDO LINHA=========="));
+    Serial.print(F("I: ")); Serial.println(i);
+    Serial.print(F("Res: ")); Serial.println(res);
+    Serial.println(F("===================================="));
   #endif
   
   i++;
@@ -246,7 +250,7 @@ void Protocol::run_diag(){
   if(diagram==NULL)return;
   
   #ifdef DEBUG_ON
-    Serial.println("\n\n==========RUN DIAGRAM==========\n\n");
+    Serial.println(F("\n\n==========RUN DIAGRAM==========\n\n"));
   #endif
 
   for(sz_ptc i=0;i<diagSz;){

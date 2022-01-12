@@ -21,7 +21,7 @@ size_t smallest_greater(T *arr, size_t n, T k){
 
   while(l<=r && r!=npos){
     mid=(l+r)/2;
-    #ifdef DEBUG ON
+    #ifdef DEBUG_ON
      Serial.print(F("L: ")); Serial.println(l);
      Serial.print(F("R: ")); Serial.println(r);
      Serial.print(F("MID: ")); Serial.println(mid);

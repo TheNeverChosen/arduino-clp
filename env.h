@@ -2,7 +2,7 @@
 
 //#define DEBUG_ON
 
-#define SERIAL_RATE 9600
+#define BAUD_RATE 9600
 
 #define QT_INP_DIG 6
 #define QT_INP_ALG 6

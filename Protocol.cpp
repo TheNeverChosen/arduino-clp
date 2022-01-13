@@ -104,7 +104,7 @@ LdVar* Protocol::create_ld_var(IOTypeModel tpMd, DeviceBase *dev, uint8_t *proto
 void Protocol::set_protocol(uint8_t *protocol, sz_ptc sz){
   for(int i=0;i<qtDevs;i++) delete deviceArr[i];  
   for(int i=0;i<qtVars;i++) delete ldVarArr[i];
-  
+
   qtDevs=0; qtVars=0;
 
   memcpy(this->protocol, protocol, sizeof(uint8_t) * sz);

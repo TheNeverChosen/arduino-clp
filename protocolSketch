@@ -1,0 +1,57 @@
+enum IOTypeModel{IO_INVALID=0, IO_IN_DG_GEN=1, IN_AL_GEN=101, IO_OUT_DG=201};
+
+//============================================================================//
+N M //Quantidade de dispositivos e variáveis totais
+N->1 Byte
+M->1 Byte
+
+  //Segue N linhas, com a i-ésima linha sendo:
+  TypeModel indice/porta qtVar //(do i-ésimo dispositivo)
+  TypeModel -> 1 Byte
+  indice/porta -> 1 Byte
+  qtVar -> 1 Byte
+
+    //Segue qtVar linhas, com a i-ésima linha sendo a descrição da variavel:
+
+      IO_IN_DG_GEN: VarId (1 Byte)
+
+      IN_AL_GEN:
+        VarId (1 Byte) qtDivs (2 Bytes - quantidade de Divisores)
+        d0 d1 d2 ... d (qtDivs) (2 Bytes cada)    //Valor dos divisores
+        101...1 ( ceil((qtDivs+1)/8) bytes )      //representação binária dos valores nas zonas
+        10...0 (ceil(qtDivs/8) bytes)             //representação binária dos indicadores de dominancia
+
+      IO_OUT_DG: VarId (1 Byte)
+
+//============================================================================//
+
+//==============================Diagrama Ladder==============================//
+
+//linhas, paralelo e linhas do paralelo
+typedef enum{
+  L1=1, L2=2, F1=3, F2=4, P1=5, P2=6
+}Symbols;
+
+//componentes dos relés: contatos e bobinas
+typedef enum{
+  RC_BEG=10, CA=11, CF=12, BA=13, BF=14, RC_END=15
+}RelayComps;
+
+  { -> 1 = L1
+  } -> 2 = L2
+  [ -> 3 = F1
+  ] -> 4 = F2
+  ( -> 5 = L1
+  ) -> 6 = L2
+
+  CA -> 11
+  CF -> 12
+  BA -> 13
+  BF -> 14
+  
+    varId (1 Byte)
+
+  { CF1 [ ( CA2 ) ( CA5 ) ] CA3 CA2 [ ( CF4 ) ( CA5 ) ] BA5 }
+
+  
+//============================================================================//

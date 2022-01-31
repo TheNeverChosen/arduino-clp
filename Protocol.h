@@ -1,6 +1,10 @@
 #pragma once
 
 #include <stdint.h>
+#include <SPI.h>
+#include <Ethernet.h>
+#include <ArduinoHttpClient.h>
+
 #include "CLPIO.h"
 #include "Ladder.h"
 #include "env.h"
@@ -18,9 +22,10 @@ typedef enum{
 
 class Protocol{
 private:
+  uint8_t protocol[MAX_SZ_PROTOCOL];
   DeviceBase *deviceArr[QT_MAX_DEV];
   LdVar *ldVarArr[QT_MAX_LD_VAR];
-  uint8_t protocol[MAX_SZ_PROTOCOL], *diagram, qtDevs;
+  uint8_t  *diagram, qtDevs;
   sz_varr qtVars;
   sz_ptc ptcSz, diagSz;
 
@@ -35,8 +40,12 @@ private:
 public:
   Protocol();
 
-  void set_protocol(uint8_t *protocol, sz_ptc sz);
+  uint8_t* getProtocol();
+  void reset_protocol(uint8_t *protocol=nullptr, sz_ptc sz=0);
+
   void set_dev_vars_diag();
   void run_diag();
-  
+  void readWsProtocol(WebSocketClient &wsClient);
+
 };
+

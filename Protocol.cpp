@@ -1,5 +1,9 @@
 #include <Arduino.h>
 #include <stdint.h>
+#include <SPI.h>
+#include <Ethernet.h>
+#include <ArduinoHttpClient.h>
+
 #include "CLPIO.h"
 #include "Ladder.h"
 #include "Protocol.h"
@@ -66,16 +70,21 @@ LdVar* Protocol::create_ld_var(IOTypeModel tpMd, DeviceBase *dev, uint8_t *proto
       }
 
       uint16_t zoneValsSz = ((qtDivs+1)+8-1)/8,
-               dominancesSz = ((qtDivs+8-1)/8);
+               dominancesSz = (qtDivs+8-1)/8;
       uint8_t *zoneVals = new uint8_t[zoneValsSz],
         *dominances = new uint8_t[dominancesSz];
       
+      Serial.print("zoneValsSz: "); Serial.print(zoneValsSz); Serial.print(" / ");
+      Serial.print("dominancesSz: "); Serial.print(dominancesSz); Serial.println();
+
+      Serial.print("Entering zoneVals at index "); Serial.println(i); Serial.println();
       for(uint16_t j=0;j<zoneValsSz;j++){
         zoneVals[j] = protocol[i++];
         Serial.print(F("zoneVals[")); Serial.print(j); Serial.print(F("]: "));
         Serial.println(zoneVals[j]);
       }
       
+      Serial.print("Entering dominances at index "); Serial.println(i); Serial.println();
       for(uint16_t j=0;j<dominancesSz;j++){
         dominances[j] = protocol[i++];
         Serial.print(F("dominances[")); Serial.print(j); Serial.print(F("]: "));
@@ -97,21 +106,31 @@ LdVar* Protocol::create_ld_var(IOTypeModel tpMd, DeviceBase *dev, uint8_t *proto
   }
 }
 
+uint8_t* Protocol::getProtocol(){
+  return protocol;
+}
 
-///////////////////////set_protocol/////////////////////////
+///////////////////////reset_protocol/////////////////////////
 ////////zerar antigos valores dos arrays e variaveis////////
-///////////do protocolo embarcado anteriormente/////////////
-void Protocol::set_protocol(uint8_t *protocol, sz_ptc sz){
-  for(int i=0;i<qtDevs;i++) delete deviceArr[i];  
-  for(int i=0;i<qtVars;i++) delete ldVarArr[i];
+///////////do protocol embarcado anteriormente/////////////
+void Protocol::reset_protocol(uint8_t *protocol, sz_ptc sz){
+  for(int i=0;i<qtDevs;i++){
+    delete deviceArr[i];
+    deviceArr[i]=NULL;
+  }
+  for(int i=0;i<qtVars;i++){
+    delete ldVarArr[i];
+    ldVarArr[i]=NULL;
+  }
 
-  qtDevs=0; qtVars=0;
-
-  memcpy(this->protocol, protocol, sizeof(uint8_t) * sz);
-
-  ptcSz = sz;
-  diagSz = 0;
+  qtDevs=qtVars=diagSz=ptcSz=0;
   diagram=NULL;
+
+  if(protocol!=nullptr && sz>0){
+    memcpy(this->protocol, protocol, sizeof(uint8_t) * sz);
+    ptcSz = sz;
+    diagSz = 0;
+  }
 }
 
 
@@ -247,7 +266,12 @@ bool Protocol::exec_path(sz_ptc &i, uint8_t stopAt){
 
 ///////função para executar o diagrama///////
 void Protocol::run_diag(){
-  if(diagram==NULL)return;
+  if(diagram==nullptr){
+    #ifdef DEBUG_ON
+      Serial.println(F("Empty Diagram"));
+    #endif
+    return;
+  }
   
   #ifdef DEBUG_ON
     Serial.println(F("\n\n==========RUN DIAGRAM==========\n\n"));
@@ -257,4 +281,28 @@ void Protocol::run_diag(){
     if(diagram[i]==L1) exec_path(i, L2);
     else i++;
   }
+  #ifdef DEBUG_ON
+    Serial.println(F("\n\n==========RUN DIAGRAM DONE==========\n\n"));
+  #endif
+}
+
+
+void Protocol::readWsProtocol(WebSocketClient &wsClient){      
+    uint8_t codMessage = wsClient.read();
+
+    if(codMessage == 1){
+      reset_protocol();
+      ptcSz = wsClient.read(protocol, MAX_SZ_PROTOCOL);
+
+      #ifdef DEBUG_ON
+        Serial.println(F("==========Received Protocol=========="));
+        Serial.print(F("Size: ")); Serial.println(ptcSz);
+        for(sz_ptc i=0;i<ptcSz;i++){
+          Serial.print(protocol[i]);
+          Serial.print(F(" "));
+        }
+        Serial.println();
+      #endif
+      set_dev_vars_diag();
+    }
 }

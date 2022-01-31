@@ -1,5 +1,7 @@
 #include <Arduino.h>
 #include <stdint.h>
+#include <avr/pgmspace.h>
+
 #include "CLPIO.h"
 #include "Ladder.h"
 #include "utils.h"
@@ -27,7 +29,7 @@ uint8_t LdVar::getValue(){
 }
 
 void LdVar::setValue(uint8_t value){
-    Serial.print(F("setValue not supported in VarId ")); 
+  Serial.print(F("setValue not supported in VarId ")); 
   Serial.println(id);
 }
 //=======================================================
@@ -42,7 +44,7 @@ LdVarInternal::LdVarInternal(sz_varr id, uint8_t startValue)
 
 uint8_t LdVarInternal::getValue(){
   #ifdef DEBUG_ON
-    Serial.print(F("Valor interno lido: ")); Serial.println(F(value));
+    Serial.print(F("Valor interno lido: ")); Serial.println(value);
   #endif
   return value;
 }
@@ -50,7 +52,7 @@ uint8_t LdVarInternal::getValue(){
 void LdVarInternal::setValue(uint8_t value){
   this->value=value;
   #ifdef DEBUG_ON
-    Serial.print(F("Valor interno setado: ")); Serial.println(F(value));
+    Serial.print(F("Valor interno setado: ")); Serial.println(value);
   #endif
 }
 //=======================================================
@@ -63,8 +65,8 @@ uint8_t LdVarDevice<IO_IN_DG_GEN>::getValue(){
   uint8_t val = device->read();
 
   #ifdef DEBUG_ON
-    Serial.print(F("Pino: ")); Serial.print(F(device->getPin()));
-    Serial.print(F(" // Valor lido: ")); Serial.println(F(val));
+    Serial.print(F("Pino: ")); Serial.print(device->getPin());
+    Serial.print(F(" // Valor lido: ")); Serial.println(val);
   #endif
 
   return val;
@@ -92,18 +94,17 @@ LdVarDevice<IO_IN_AL_GEN>::LdVarDevice(sz_varr id, DeviceBase *baseDev,
   uint16_t zoneValsSz = ((qtDivs+1)+8-1)/8,
                dominancesSz = ((qtDivs+8-1)/8);
   #ifdef DEBUG_ON 
-      Serial.println(F("==========ZONEVALS=========="));
-     Serial.print(F("sz: ")); Serial.println(F(zoneValsSz)); 
+    Serial.println(F("==========ZONEVALS=========="));
+    Serial.print(F("sz: ")); Serial.println(zoneValsSz); 
   
-    for(int i=0;i<zoneValsSz;i++)
-  
-      Serial.println(F(zoneVals[i]));
-     Serial.println(F("==========DOMINANCES=========="));
-      Serial.print(F("sz: ")); Serial.println(F(dominancesSz)); 
+    for(int i=0;i<zoneValsSz;i++) Serial.println(zoneVals[i]);
+
+    Serial.println(F("==========DOMINANCES=========="));
+    Serial.print(F("sz: ")); Serial.println(dominancesSz); 
   
     for(int i=0;i<dominancesSz;i++)
       Serial.println(dominances[i]);
-    #endif
+  #endif
 }
 
 LdVarDevice<IO_IN_AL_GEN>::~LdVarDevice(){
@@ -119,9 +120,9 @@ uint8_t LdVarDevice<IO_IN_AL_GEN>::getValue(){
   uint16_t sg = smallest_greater<uint16_t>(divs, qtDivs, k);
   
   #ifdef DEBUG_ON
-    Serial.print(F("Analog PIN: ")); Serial.println(F(device->getPin()));
-    Serial.print(F("SG: ")); Serial.println(F(sg));
-    Serial.print(F("divs[")); Serial.print(F(sg)); Serial.print(F("]: "));
+    Serial.print(F("Analog PIN: ")); Serial.println(device->getPin());
+    Serial.print(F("SG: ")); Serial.println(sg);
+    Serial.print(F("divs[")); Serial.print(sg); Serial.print(F("]: "));
     Serial.println(divs[sg]);
 
     if(sg==qtDivs || divs[sg]!=k) return get_bit_arr(zoneVals, sg, qtDivs+1);  //zoneVals[sg]
@@ -152,8 +153,8 @@ uint8_t LdVarDevice<IO_OUT_DG_GEN>::getValue(){
   uint8_t val = device->read();
 
   #ifdef DEBUG_ON
-    Serial.print(F("Pino: ")); Serial.print(F(device->getPin()));
-    Serial.print(F(" // Valor lido: ")); Serial.println(F(val));
+    Serial.print(F("Pino: ")); Serial.print(device->getPin());
+    Serial.print(F(" // Valor lido: ")); Serial.println(val);
   #endif
 
   return val;
@@ -164,8 +165,8 @@ void LdVarDevice<IO_OUT_DG_GEN>::setValue(uint8_t value){
   if(device==nullptr) return LdVar::setValue(value);
 
   #ifdef DEBUG_ON
-    Serial.print(F("Pino: ")); Serial.println(F(device->getPin()));
-    Serial.print(F(" // Valor escrito: ")); Serial.println(F(value));
+    Serial.print(F("Pino: ")); Serial.print(device->getPin());
+    Serial.print(F(" // Valor escrito: ")); Serial.println(value);
   #endif
   
   device->write(value);

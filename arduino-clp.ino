@@ -2,21 +2,26 @@
 #include <SPI.h>
 #include <Ethernet.h>
 #include <ArduinoHttpClient.h>
-#include "env.h"
 
-#define MIN(x, y) (x<y ? x : y)
+#include "CLPIO.h"
+#include "Ladder.h"
+#include "Protocol.h"
+#include "env.h"
+#include "utils.h"
 
 byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
 IPAddress ip(192, 168, 0, 177);
+char serverAddress[] = "34.95.137.51";
+int port = 80;
 
-char serverAddress[] = "192.168.100.10";
-int port = 3333;
+uint8_t disconnecting =0;
+Protocol protocol;
 
 EthernetClient etClient;
 WebSocketClient wsClient(etClient, serverAddress, port);
 
 void setup(){
-  Serial.begin(9600);
+  Serial.begin(BAUD_RATE);
   while(!Serial){}
   
   if(Ethernet.begin(mac) == 0){
@@ -24,64 +29,50 @@ void setup(){
     Ethernet.begin(mac, ip);
   }
 
+  // protocol.reset_protocol(protocololo, sizeof(protocololo));
+  // protocol.set_dev_vars_diag();
+  Serial.println(F("starting WebSocket client"));
 }
-int count=0;
-int received=1;
+
 void loop(){
   wsClient.begin("/arduino");
-  Serial.println(F("starting WebSocket client"));
 
-  while (wsClient.connected()) {
-      Serial.print(F("Sending hello "));
-      Serial.println(count);
+  if(wsClient.connected()){ //PLC Identification
+    uint8_t plcVersion[3];
+    getVersion(plcVersion);
 
-      // send a hello #
-      wsClient.beginMessage(TYPE_TEXT);
-      wsClient.print(F("hello "));
-      wsClient.print(count);
-      wsClient.endMessage();
+    wsClient.beginMessage(TYPE_BINARY);
+    wsClient.write(0);
+    wsClient.write(plcVersion, 3);
+    wsClient.write(getReference());
+    wsClient.endMessage();
+    disconnecting=0;
+  }
 
-      // increment count for next message
-      count++;
-
-
-    // check if a message is available to be received
-    int messageSize = wsClient.parseMessage(); //170
-
-    int buffSz = 50;
-    uint8_t buffer[buffSz];
-
-    if (messageSize > 0) {
+  while(wsClient.connected()){
+    int msgSz = wsClient.parseMessage();
+    if (msgSz > 0){
+      #ifdef DEBUG_ON
+        Serial.print("MESSAGE RECEIVED. SIZE: "); Serial.println(msgSz);
+      #endif
       if(wsClient.messageType()==TYPE_TEXT){
         Serial.println(F("Received a message:"));
         Serial.println(wsClient.readString());
       }
       else if(wsClient.messageType()==TYPE_BINARY){
-        Serial.print(F("Tamanho do Binario: ")); Serial.println(messageSize);
-        Serial.print(F("["));
-        
-        if(messageSize>MAX_SZ_PROTOCOL){
-          Serial.println("ERRO: MENSAGEM MUITO GRANDE!!!");
-        }
-
-        uint8_t array[MAX_SZ_PROTOCOL];
-        size_t arraySz=0;
-
-        wsClient.read(array, messageSize);
-
-        for(int toRead=min(messageSize, buffSz);wsClient.read(buffer, toRead)>0;toRead=min(messageSize, buffSz)){ 
-          memcpy(array+arraySz, buffer, toRead * sizeof(uint8_t));
-
-          messageSize-=toRead;
-          arraySz+=toRead;
-        }
+        if(msgSz>MAX_SZ_PROTOCOL)
+          Serial.println(F("ERROR: Message too long!"));
+        else protocol.readWsProtocol(wsClient);
       }
+      while(wsClient.available()) wsClient.read(); //consuming all left
     }
 
-    // wait 5 seconds
-    delay(1000);
+    protocol.run_diag();
+  }
+  if(disconnecting==0){
+    Serial.println(F("Disconnected. Trying to reconnect..."));
+    disconnecting=1;
   }
 
-  Serial.println(F("disconnected"));
-  
+  protocol.run_diag();
 }

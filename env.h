@@ -1,17 +1,29 @@
 #pragma once
 
-//#define DEBUG_ON
+#include <Arduino.h>
+
+// #define DEBUG_ON
 
 #define BAUD_RATE 9600
 
-#define QT_INP_DIG 6
-#define QT_INP_ALG 6
-#define QT_OUT_DIG 4
+const uint8_t verSz = 3;
+const PROGMEM uint8_t version[verSz] = {0,0,0};
+const PROGMEM uint8_t reference = 1;
 
-static const unsigned QT_MAX_DEV = QT_INP_ALG + QT_INP_DIG + QT_OUT_DIG;
+void getVersion(uint8_t *version);
+uint8_t getReference();
+
+#define QT_IN_DG 6
+#define QT_IN_AL 6
+#define QT_OUT_DG 6
+
+static const unsigned QT_MAX_DEV = QT_IN_DG + QT_IN_AL + QT_OUT_DG;
+
+#define MIN(x, y) (x<y ? x : y)
 
 #define QT_MAX_LD_VAR 256 //caracas
 typedef uint8_t sz_varr;
 
 #define MAX_SZ_PROTOCOL 2000
 typedef uint16_t sz_ptc;
+

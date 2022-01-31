@@ -16,7 +16,8 @@ M->1 Byte
       IO_IN_DG_GEN: VarId (1 Byte)
 
       IN_AL_GEN:
-        VarId (1 Byte) qtDivs (2 Bytes - quantidade de Divisores)
+        VarId (1 Byte) 
+        qtDivs (2 Bytes - quantidade de Divisores)
         d0 d1 d2 ... d (qtDivs) (2 Bytes cada)    //Valor dos divisores
         101...1 ( ceil((qtDivs+1)/8) bytes )      //representação binária dos valores nas zonas
         10...0 (ceil(qtDivs/8) bytes)             //representação binária dos indicadores de dominancia

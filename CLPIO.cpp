@@ -3,15 +3,9 @@
 #include "CLPIO.h"
 #include "env.h"
 
-#define DEBUG_ON false 
-
-#define QT_IN_DG 6
-#define QT_IN_AL 6
-#define QT_OUT_DG 6
-
 uint8_t inDgPins[QT_IN_DG]={27, 29, 31, 33, 35, 39};
 uint8_t inAlPins[QT_IN_AL]={A0, A1, A2, A3, A4, A5};
-uint8_t outDgPins[QT_OUT_DG]={41, 43, 45, 47, 53, 51};
+uint8_t outDgPins[QT_OUT_DG]={41, 43, 45, 47, 49, 53};
 
 DeviceBase::DeviceBase(uint8_t id, DevIDType idTp, IOTypeModel tpMd):tpMd(tpMd){
   this->pin = idTp==ID_TP_PIN

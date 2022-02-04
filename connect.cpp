@@ -23,10 +23,10 @@ Connect::Connect():plc(), etClient(), wsClient(etClient,serverAddress, port), la
 }
 
 void Connect::begin_network(){
-  // if(Ethernet.begin(mac) == 0){
-  //   Serial.println(F("Failed to configure Ethernet using DHCP"));
-  //   Ethernet.begin(mac, ip);
-  // }
+  if(Ethernet.begin(mac) == 0){
+    Serial.println(F("Failed to configure Ethernet using DHCP"));
+    Ethernet.begin(mac, ip);
+  }
 }
 
 void Connect::setLastConSt(enum WsConnectState lastConSt){

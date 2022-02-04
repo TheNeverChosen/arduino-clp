@@ -1,11 +1,7 @@
 #include <Arduino.h>
 #include <stdint.h>
-#include "CLPIO.h"
+#include "plcIO.h"
 #include "env.h"
-
-uint8_t inDgPins[QT_IN_DG]={27, 29, 31, 33, 35, 39};
-uint8_t inAlPins[QT_IN_AL]={A0, A1, A2, A3, A4, A5};
-uint8_t outDgPins[QT_OUT_DG]={41, 43, 45, 47, 49, 53};
 
 DeviceBase::DeviceBase(uint8_t id, DevIDType idTp, IOTypeModel tpMd):tpMd(tpMd){
   this->pin = idTp==ID_TP_PIN

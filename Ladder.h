@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "CLPIO.h"
+#include "plcIO.h"
 #include "env.h"
 
 #define INVALID_VAL ((uint8_t)-1)

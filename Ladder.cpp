@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <avr/pgmspace.h>
 
-#include "CLPIO.h"
+#include "plcIO.h"
 #include "Ladder.h"
 #include "utils.h"
 #include "env.h"

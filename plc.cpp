@@ -4,24 +4,16 @@
 #include <Ethernet.h>
 #include <ArduinoHttpClient.h>
 
-#include "CLPIO.h"
+#include "plcIO.h"
 #include "Ladder.h"
-#include "Protocol.h"
+#include "plc.h"
 #include "env.h"
 
 typedef unsigned long long ull;
 
-Protocol::Protocol():deviceArr(), ldVarArr(), diagram(NULL), qtDevs(0), qtVars(0), ptcSz(0), diagSz(0){ }
-
-////////////////////////////comsume_bytes////////////////////////////
-///////////////////pegar duas posições de um array///////////////////
-template<typename T>
-T Protocol::consume_bytes(uint8_t *arr, sz_ptc &i){
-  T res = *((T*)(&arr[i]));
-  i+=sizeof(T);
-  return res;
+Protocol::Protocol():deviceArr(), ldVarArr(), diagram(NULL), qtDevs(0), qtVars(0), ptcSz(0), diagSz(0){
+  reset_protocol();
 }
-
 
 ////////////////////////criação dos dispositivos///////////////////////
 DeviceBase* Protocol::create_device(IOTypeModel tpMd, uint8_t doorId){
@@ -113,7 +105,7 @@ uint8_t* Protocol::getProtocol(){
 ///////////////////////reset_protocol/////////////////////////
 ////////zerar antigos valores dos arrays e variaveis////////
 ///////////do protocol embarcado anteriormente/////////////
-void Protocol::reset_protocol(uint8_t *protocol, sz_ptc sz){
+void Protocol::reset_protocol(uint8_t *protocol=NULL, sz_ptc sz=0){
   for(int i=0;i<qtDevs;i++){
     delete deviceArr[i];
     deviceArr[i]=NULL;
@@ -122,6 +114,7 @@ void Protocol::reset_protocol(uint8_t *protocol, sz_ptc sz){
     delete ldVarArr[i];
     ldVarArr[i]=NULL;
   }
+  for(int i=0;i<QT_OUT_DG;i++) digitalWrite(outDgPins, LOW);
 
   qtDevs=qtVars=diagSz=ptcSz=0;
   diagram=NULL;
@@ -131,6 +124,10 @@ void Protocol::reset_protocol(uint8_t *protocol, sz_ptc sz){
     ptcSz = sz;
     diagSz = 0;
   }
+}
+
+void Protocol::set_ptcSz(sz_ptc ptcSz){
+  this->ptcSz = ptcSz;
 }
 
 
@@ -285,6 +282,7 @@ void Protocol::run_diag(){
     Serial.println(F("\n\n==========RUN DIAGRAM DONE==========\n\n"));
   #endif
 }
+
 
 
 void Protocol::readWsProtocol(WebSocketClient &wsClient){      

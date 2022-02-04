@@ -10,8 +10,8 @@ const uint8_t verSz = 3;
 const PROGMEM uint8_t version[verSz] = {0,0,0};
 const PROGMEM uint8_t reference = 1;
 
-void getVersion(uint8_t *version);
-uint8_t getReference();
+void get_version(uint8_t *version);
+uint8_t get_reference();
 
 #define QT_IN_DG 6
 #define QT_IN_AL 6
@@ -26,4 +26,10 @@ typedef uint8_t sz_varr;
 
 #define MAX_SZ_PROTOCOL 2000
 typedef uint16_t sz_ptc;
+
+static const byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
+static const IPAddress ip(192, 168, 0, 177);
+static const char serverAddress[] = "34.95.137.51";
+static const int port = 80;
+
 

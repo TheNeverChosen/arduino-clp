@@ -1,9 +1,6 @@
 #pragma once
 
 #include <stdint.h>
-#include <SPI.h>
-#include <Ethernet.h>
-#include <ArduinoHttpClient.h>
 
 #include "plcIO.h"
 #include "Ladder.h"

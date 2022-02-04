@@ -1,12 +1,9 @@
 #include <Arduino.h>
 #include <stdint.h>
-#include <SPI.h>
-#include <Ethernet.h>
-#include <ArduinoHttpClient.h>
 
+#include "plc.h"
 #include "plcIO.h"
 #include "Ladder.h"
-#include "plc.h"
 #include "utils.h"
 #include "env.h"
 

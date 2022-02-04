@@ -7,16 +7,17 @@
 #include "plcIO.h"
 #include "Ladder.h"
 #include "plc.h"
+#include "utils.h"
 #include "env.h"
 
 typedef unsigned long long ull;
 
-Protocol::Protocol():deviceArr(), ldVarArr(), diagram(NULL), qtDevs(0), qtVars(0), ptcSz(0), diagSz(0){
+Plc::Plc():deviceArr(), ldVarArr(), diagram(NULL), qtDevs(0), qtVars(0), ptcSz(0), diagSz(0), ready(false){
   reset_protocol();
 }
 
 ////////////////////////criação dos dispositivos///////////////////////
-DeviceBase* Protocol::create_device(IOTypeModel tpMd, uint8_t doorId){
+DeviceBase* Plc::create_device(IOTypeModel tpMd, uint8_t doorId){
   DeviceBase *dev;
   switch(tpMd){
     /*===================input digital genérico===================*/
@@ -41,7 +42,7 @@ DeviceBase* Protocol::create_device(IOTypeModel tpMd, uint8_t doorId){
 
 
 ///////////////////////////////////////criação de variaveis//////////////////////////////////////
-LdVar* Protocol::create_ld_var(IOTypeModel tpMd, DeviceBase *dev, uint8_t *protocol, sz_ptc &i){
+LdVar* Plc::create_ld_var(IOTypeModel tpMd, DeviceBase *dev, uint8_t *protocol, sz_ptc &i){
   sz_varr varId = consume_bytes<sz_varr>(protocol, i);
 
   switch(tpMd){
@@ -49,13 +50,13 @@ LdVar* Protocol::create_ld_var(IOTypeModel tpMd, DeviceBase *dev, uint8_t *proto
       LdVarDevice<IO_IN_DG_GEN> *var = new LdVarDevice<IO_IN_DG_GEN>(varId, dev);
       return static_cast<LdVar*>(var);}
     case IO_IN_AL_GEN:{
-      uint16_t qtDivs = consume_bytes<uint16_t>(protocol, i);
+      uint16_t qtDivs = consume_bytes<uint16_t,sz_ptc>(protocol, i);
       Serial.print("qtDivs : ");Serial.println(qtDivs);
       
       uint16_t *divs = new uint16_t[qtDivs];
 
       for(uint8_t j=0;j<qtDivs;j++){
-        divs[j] = consume_bytes<uint16_t>(protocol, i);
+        divs[j] = consume_bytes<uint16_t,sz_ptc>(protocol, i);
 
         Serial.print(F("divs [")); Serial.print(j); Serial.print(F("]: "));
         Serial.println(divs[j]);
@@ -98,14 +99,14 @@ LdVar* Protocol::create_ld_var(IOTypeModel tpMd, DeviceBase *dev, uint8_t *proto
   }
 }
 
-uint8_t* Protocol::getProtocol(){
+uint8_t* Plc::getProtocol(){
   return protocol;
 }
 
 ///////////////////////reset_protocol/////////////////////////
 ////////zerar antigos valores dos arrays e variaveis////////
 ///////////do protocol embarcado anteriormente/////////////
-void Protocol::reset_protocol(uint8_t *protocol=NULL, sz_ptc sz=0){
+void Plc::reset_protocol(uint8_t *protocol, sz_ptc sz){
   for(int i=0;i<qtDevs;i++){
     delete deviceArr[i];
     deviceArr[i]=NULL;
@@ -114,10 +115,16 @@ void Protocol::reset_protocol(uint8_t *protocol=NULL, sz_ptc sz=0){
     delete ldVarArr[i];
     ldVarArr[i]=NULL;
   }
-  for(int i=0;i<QT_OUT_DG;i++) digitalWrite(outDgPins, LOW);
+  for(int i=0;i<QT_OUT_DG;i++){
+    pinMode(outDgPins[i], OUTPUT);    //making sure it's set as output pin
+    digitalWrite(outDgPins[i], LOW);  //setting output value to LOW (Default)
+  }
+  for(int i=0;i<QT_IN_DG;i++)
+    pinMode(inDgPins[i], INPUT);  //making sure it's set as input pin
 
   qtDevs=qtVars=diagSz=ptcSz=0;
   diagram=NULL;
+  ready=false;
 
   if(protocol!=nullptr && sz>0){
     memcpy(this->protocol, protocol, sizeof(uint8_t) * sz);
@@ -126,7 +133,11 @@ void Protocol::reset_protocol(uint8_t *protocol=NULL, sz_ptc sz=0){
   }
 }
 
-void Protocol::set_ptcSz(sz_ptc ptcSz){
+bool Plc::isReady(){
+  return ready;
+}
+
+void Plc::set_ptcSz(sz_ptc ptcSz){
   this->ptcSz = ptcSz;
 }
 
@@ -136,7 +147,7 @@ void Protocol::set_ptcSz(sz_ptc ptcSz){
 /////////////////////////devices(dispositivos),////////////////////////
 /////////////////////////variables(variaveis e/////////////////////////
 ////////////////////////diagram(diagrama ladder)///////////////////////
-void Protocol::set_dev_vars_diag(){
+void Plc::set_dev_vars_diag(){
   if(ptcSz==0)  return;
 
   sz_ptc i=0;
@@ -180,6 +191,8 @@ void Protocol::set_dev_vars_diag(){
   
   Serial.print(F("ptcSz: ")); Serial.println(ptcSz); 
   Serial.print(F("DiagSz: ")); Serial.println(diagSz);
+
+  ready=true;
 }
 
 bool isRelayComp(uint8_t x){
@@ -188,7 +201,7 @@ bool isRelayComp(uint8_t x){
 
 ////////////////////////exec_fork///////////////////////
 /////////////função para leitura do paralelo////////////
-bool Protocol::exec_fork(sz_ptc &i){
+bool Plc::exec_fork(sz_ptc &i){
   if(diagram[i]!=F1) return false;
 
   bool res = false;
@@ -218,7 +231,7 @@ bool Protocol::exec_fork(sz_ptc &i){
 //////////////////////////exec_path/////////////////////////
 ///função para leitura de linhas principais e do paralelo///
 
-bool Protocol::exec_path(sz_ptc &i, uint8_t stopAt){
+bool Plc::exec_path(sz_ptc &i, uint8_t stopAt){
   if(diagram[i]!=L1 && diagram[i]!=P1) return false;
 
   bool res=true;
@@ -262,10 +275,10 @@ bool Protocol::exec_path(sz_ptc &i, uint8_t stopAt){
 
 
 ///////função para executar o diagrama///////
-void Protocol::run_diag(){
-  if(diagram==nullptr){
+void Plc::run_diag(){
+  if(!ready){
     #ifdef DEBUG_ON
-      Serial.println(F("Empty Diagram"));
+      Serial.println(F("PLC not ready to run."));
     #endif
     return;
   }
@@ -281,26 +294,4 @@ void Protocol::run_diag(){
   #ifdef DEBUG_ON
     Serial.println(F("\n\n==========RUN DIAGRAM DONE==========\n\n"));
   #endif
-}
-
-
-
-void Protocol::readWsProtocol(WebSocketClient &wsClient){      
-    uint8_t codMessage = wsClient.read();
-
-    if(codMessage == 1){
-      reset_protocol();
-      ptcSz = wsClient.read(protocol, MAX_SZ_PROTOCOL);
-
-      #ifdef DEBUG_ON
-        Serial.println(F("==========Received Protocol=========="));
-        Serial.print(F("Size: ")); Serial.println(ptcSz);
-        for(sz_ptc i=0;i<ptcSz;i++){
-          Serial.print(protocol[i]);
-          Serial.print(F(" "));
-        }
-        Serial.println();
-      #endif
-      set_dev_vars_diag();
-    }
 }

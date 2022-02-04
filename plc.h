@@ -28,6 +28,7 @@ private:
   uint8_t  *diagram, qtDevs;
   sz_varr qtVars;
   sz_ptc ptcSz, diagSz;
+  bool ready;
 
   DeviceBase* create_device(IOTypeModel tpMd, uint8_t doorId);
   LdVar* create_ld_var(IOTypeModel tpMd, DeviceBase *dev, uint8_t *protocol, sz_ptc &i);
@@ -40,6 +41,7 @@ public:
 
   uint8_t* getProtocol();
   void reset_protocol(uint8_t *protocol=nullptr, sz_ptc sz=0);
+  bool isReady();
   void set_ptcSz(sz_ptc ptcSz);
   void set_dev_vars_diag();
   void run_diag();

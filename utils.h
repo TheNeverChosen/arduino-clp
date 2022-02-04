@@ -5,14 +5,18 @@
 #include <stdint.h>
 #include "env.h"
 
-#define npos ((size_t)-1)
-
 ////////////////////////////comsume_bytes////////////////////////////
 ///////////////////pegar duas posições de um array///////////////////
-template<typename T>
-T Protocol::consume_bytes(uint8_t *arr, size_t &i){
+template<typename T, typename I_TP>
+T consume_bytes(uint8_t *arr, I_TP &i){
   T res = *((T*)(&arr[i]));
   i+=sizeof(T);
+  return res;
+}
+
+template<typename T>
+T consume_bytes(uint8_t *arr){
+  T res = *((T*)(arr));
   return res;
 }
 

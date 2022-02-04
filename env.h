@@ -1,8 +1,11 @@
 #pragma once
 
 #include <Arduino.h>
+#include <stdlib.h>
 
 // #define DEBUG_ON
+
+#define npos ((size_t)-1)
 
 #define BAUD_RATE 9600
 
@@ -26,10 +29,5 @@ typedef uint8_t sz_varr;
 
 #define MAX_SZ_PROTOCOL 2000
 typedef uint16_t sz_ptc;
-
-static const byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
-static const IPAddress ip(192, 168, 0, 177);
-static const char serverAddress[] = "34.95.137.51";
-static const int port = 80;
 
 
